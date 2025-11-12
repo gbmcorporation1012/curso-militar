@@ -5,7 +5,8 @@ import {
   Check, 
   Crown, 
   Shield, 
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from 'lucide-react'
 
 interface SubscriptionPlan {
@@ -20,6 +21,7 @@ interface SubscriptionPlan {
 
 export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>('annual')
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const subscriptionPlans: SubscriptionPlan[] = [
     {
@@ -62,9 +64,17 @@ export default function SubscriptionPage() {
 
   const selectedPlanData = subscriptionPlans.find(p => p.id === selectedPlan)
 
-  const handleSubscribe = () => {
-    if (selectedPlanData) {
+  const handleSubscribe = async () => {
+    if (!selectedPlanData) return
+    
+    setIsProcessing(true)
+    
+    try {
+      // Redirecionar diretamente para o link de pagamento do Mercado Pago
       window.location.href = selectedPlanData.paymentLink
+    } catch (error) {
+      console.error('Erro ao processar assinatura:', error)
+      setIsProcessing(false)
     }
   }
 
@@ -153,10 +163,20 @@ export default function SubscriptionPage() {
           <div className="text-center">
             <button
               onClick={handleSubscribe}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-lg"
+              disabled={isProcessing}
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
             >
-              <Crown className="inline w-5 h-5 mr-2" />
-              🎖️ Prosseguir com {selectedPlanData?.name}
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-5 h-5" />
+                  🎖️ Prosseguir com {selectedPlanData?.name}
+                </>
+              )}
             </button>
             <p className="text-sm text-slate-400 mt-4">
               🛡️ Pagamento 100% seguro via Mercado Pago • Cancele quando quiser • Garantia de 7 dias
